@@ -1,6 +1,5 @@
 import { createFilter } from 'rollup-pluginutils';
 import postcss from 'postcss';
-import styleInject from 'style-inject';
 import path from 'path';
 
 import Concat from 'concat-with-sourcemaps';
@@ -11,14 +10,15 @@ function cwd(file) {
 
 export default function (options = {}) {
   const filter = createFilter(options.include, options.exclude);
-  const injectFnName = '__$styleInject'
+  const injectFn = options.injectFn
+  const injectFnName = options.injectFnName || '__$styleInject'
   const extensions = options.extensions || ['.css', '.sss']
   const getExport = options.getExport || function () {}
   const combineStyleTags = !!options.combineStyleTags;
 
   const concat = new Concat(true, 'styles.css', '\n');
 
-  const injectStyleFuncCode = styleInject.toString().replace(/styleInject/, injectFnName);
+  const injectStyleFuncCode = `function ${injectFnName}(style, returnValue) { (${injectFn.toString()})(style); return returnValue; };\n`
 
   return {
     intro() {
